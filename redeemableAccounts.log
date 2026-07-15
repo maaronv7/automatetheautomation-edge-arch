@@ -1,0 +1,32 @@
+2026-06-18 17:05:30,452 - ERROR - Error finding profile folders: [Errno 2] No such file or directory: '/home/deck/.config/microsoft-edge'
+2026-06-18 21:25:23,492 - ERROR - Error finding profile folders: [Errno 2] No such file or directory: '/home/deck/.config/microsoft-edge'
+2026-06-18 21:31:08,400 - ERROR - Error opening Edge profiles: [Errno 2] No such file or directory: '/usr/bin/microsoft-edge-stable'
+2026-06-18 21:32:24,254 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-18 21:32:26,264 - WARNING - Attempt 1: Button not found for window 77594672. Queuing for retry.
+2026-06-18 21:32:26,265 - INFO - Attempt 2/5 — processing 1 window(s).
+2026-06-19 17:55:07,337 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-20 23:09:49,722 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-21 19:36:28,773 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-22 19:39:27,842 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-25 18:18:09,532 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-06-30 11:37:44,394 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-07-01 10:04:59,476 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-07-01 16:05:08,737 - WARNING - The email 'forsakenelder@gmail.com' does not have the extension.
+2026-07-01 16:05:08,738 - WARNING - The email 'roboticwoman2@gmail.com' does not have the extension.
+2026-07-01 16:05:12,837 - INFO - Attempt 1/5 — processing 1 window(s).
+2026-07-01 16:06:35,492 - INFO - Attempt 1/5 — processing 3 window(s).
+2026-07-02 18:15:51,942 - INFO - Attempt 1/5 — processing 2 window(s).
+2026-07-02 20:54:42,285 - INFO - Attempt 1/5 — processing 3 window(s).
+2026-07-03 20:55:23,383 - INFO - Attempt 1/5 — processing 3 window(s).
+2026-07-04 10:56:01,392 - INFO - Attempt 1/5 — processing 3 window(s).
+2026-07-05 16:30:31,670 - INFO - Attempt 1/5 — processing 3 window(s).
+2026-07-06 11:41:45,107 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-07 22:16:46,064 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-08 09:55:14,331 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-09 08:40:54,493 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-10 09:50:16,334 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-11 10:44:10,326 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-12 19:47:34,208 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-13 09:57:48,800 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-14 09:03:50,080 - INFO - Attempt 1/5 — processing 4 window(s).
+2026-07-15 12:50:10,570 - INFO - Attempt 1/5 — processing 4 window(s).
