@@ -342,11 +342,6 @@ def wait_until_time(target_hour=0, target_minute=1):
         )
         time.sleep(min(60, seconds_until))
 
-    ["theexperimentedsoldier6@gmail.com","theforsakenelder6@gmail.com","theroboticwoman2@gmail.com","theroboticwoman5@gmail.com", "theunendingdreamer5@gmail.com"],
-    ["theabandonedarchitect5@gmail.com","thewastelandvagabond4@gmail.com","theunsightlyking3@gmail.com", "thehygienictcgplayer5@gmail.com", "theobliviousdetective3@gmail.com"],
-    ["anabandonedarchitect@gmail.com","awastelandvagabond@gmail.com", "anunsightlyking@gmail.com", "ahygienictcgplayer@gmail.com", "anobliviousdetective@gmail.com"],
-    ["anexperimentedsoldier2@gmail.com", "aforsakenelder2@gmail.com", "aroboticwoman3@gmail.com", "anunendingdreamer2@gmail.com", "anabandonedarchitect2@gmail.com"]
-
 # ── File helpers ──────────────────────────────────────────────────────────────
 
 def open_file_selector_json() -> str:
@@ -392,8 +387,8 @@ edge_path = "/var/lib/flatpak/exports/bin/com.microsoft.Edge"
 # (the same 32-char lowercase string shown under "Details")
 target_folder = "padcfmjlalcdcgoamlodlienichjegjd"  # ← update if different on Edge
 
-image_path    = "/DesktopButton.png"
-JSON_FILE_PATH = "/my_email.json"
+image_path    = "DesktopButton.png"
+JSON_FILE_PATH = "my_email.json"
 APP_FILE_PATH  = "/home/deck/PycharmProjects/automatetheautomation-edge-arch/apps_to_close.json"
 config_path    = "/home/deck/PycharmProjects/rewards-automator/Rewards-Search-Automator/js/config.json"
 
