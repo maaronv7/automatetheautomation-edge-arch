@@ -398,6 +398,20 @@ with open(config_path) as f:
 profile_folders: list = []
 num_of_profiles: int = 0
 
+with open(JSON_FILE_PATH) as f:
+    batches = json.load(f)["batches"]
+
+print("\n📧 BATCHES:")
+for i, batch in enumerate(batches, 1):
+    print(f"Batch {i}: {batch}")
+
+print(f"\n🔍 SEARCHES:")
+print(f"Min: {searches['millisecondsMin'] / 1000:.0f}s")
+print(f"Max: {searches['millisecondsMax'] / 1000:.0f}s")
+print(f"Desktop: {searches['desktop']}")
+
+print("\n" + "="*80)
+
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 print("Select if Batch (Y/N):")
