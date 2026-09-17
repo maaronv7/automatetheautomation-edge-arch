@@ -254,7 +254,7 @@ def open_edge_profiles_rewards(edge_path: str, user_data_dir: str,
                 edge_path,
                 f"--user-data-dir={user_data_dir}",
                 f"--profile-directory={profile_name}",
-                "https://www.bing.com/"
+                "https://www.example.com"
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL)
