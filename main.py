@@ -1,30 +1,37 @@
-import asyncio
 import subprocess
 import os
-import pyautogui as pag
 import time
 import logging
 import sys
 import json
+import tempfile
+import pyautogui as pag
 import tkinter as tk
 from tkinter import filedialog
-import mss
 import cv2
 import numpy as np
 from datetime import datetime, time as time2, timedelta
 
-# ── NOTE: Install dependencies on Arch Linux ──────────────────────────────────
-# sudo pacman -S python python-pip wmctrl xdotool xorg-xdpyinfo
-# pip install pyautogui mss opencv-python numpy pillow
+# ── NOTE: Setup on Steam Deck / SteamOS Desktop Mode (KDE Plasma, Wayland) ────
 #
-# Install Microsoft Edge on Arch Linux (AUR):
-#   yay -S microsoft-edge-stable-bin
-# Or via flatpak:
-#   flatpak install flathub com.microsoft.Edge
-# ─────────────────────────────────────────────────────────────────────────────
+# pyautogui and xdotool are kept as-is: pyautogui's clicks go through XTest,
+# which XWayland bridges to the compositor globally, so clicks land fine
+# everywhere. xdotool's window search only sees XWayland clients though —
+# which is why "--ozone-platform=x11" is kept on the Edge/Chrome launch
+# flags below (it forces those two into the X11 compat layer xdotool can see).
+#
+# mss is the one thing that's fundamentally broken here and gets replaced:
+# it calls XGetImage() on the X11 *root* window, but KWin composites the
+# desktop itself via OpenGL/DRM, so there is no accessible root framebuffer
+# for XWayland to hand back — forcing an app into X11 mode doesn't change
+# that. spectacle asks the compositor directly instead, so it works
+# regardless of whether the windows underneath are X11 or native Wayland.
+#
+# spectacle ships preinstalled with Plasma (Steam Deck's desktop mode) —
+# no extra install needed for it, no readonly-disable, no cargo/AUR.
+# ────────────────────────────────────────────────────────────────────────────
 
 pag.FAILSAFE = False
-# pag.PAUSE = 0.5
 
 logging.basicConfig(
     level=logging.INFO,
@@ -35,13 +42,17 @@ logging.basicConfig(
     ]
 )
 
+SPECTACLE = "spectacle"
 
-# ── Window helpers (replaces pygetwindow on Linux) ────────────────────────────
+
+# ── Window helpers (unchanged — xdotool still works fine for XWayland clients) ─
 
 def get_windows_with_title(title_fragment: str) -> list[dict]:
     """
     Returns a list of window dicts {id, title} whose title contains
-    title_fragment (case-insensitive). Uses xdotool.
+    title_fragment (case-insensitive). Uses xdotool. Only finds windows
+    that are running as XWayland clients — for Edge/Chrome that means they
+    must be launched with --ozone-platform=x11 (see open_edge_profiles below).
     """
     try:
         output = subprocess.check_output(
@@ -115,7 +126,7 @@ def close_apps_by_title(windows: list):
             time.sleep(1)
 
 
-# ── Profile discovery ─────────────────────────────────────────────────────────
+# ── Profile discovery (unchanged — no X11/Wayland dependency here) ───────────
 
 def get_profile_folders(user_data_dir: str, target_folder: str):
     """
@@ -127,7 +138,6 @@ def get_profile_folders(user_data_dir: str, target_folder: str):
         profile_folders = []
         for item in os.listdir(user_data_dir):
             full_path = os.path.join(user_data_dir, item)
-            # Edge uses "Default" and "Profile N" — include both
             if os.path.isdir(full_path) and (
                 item.startswith("Profile ") or item == "Default"
             ):
@@ -158,7 +168,6 @@ def get_profile_folders_by_email(user_data_dir: str, target_folder: str, email_b
             full_path = os.path.join(user_data_dir, item)
             prefs_path = os.path.join(full_path, "Preferences")
 
-            # Edge uses "Default" and "Profile N"
             if not (
                 os.path.isdir(full_path)
                 and (item.startswith("Profile ") or item == "Default")
@@ -173,7 +182,6 @@ def get_profile_folders_by_email(user_data_dir: str, target_folder: str, email_b
             with open(prefs_path, "r", encoding="utf-8") as f:
                 prefs = json.load(f)
 
-            # Edge stores the signed-in account under account_info (same as Chrome)
             account_info = prefs.get("account_info", [])
             email = account_info[0].get("email") if account_info else None
 
@@ -209,7 +217,6 @@ def open_edge_profiles(edge_path: str, user_data_dir: str,
     """
     Launch one Edge window per profile, all navigating to example.com,
     then wait until we can see all windows in the task list.
-    Edge accepts the same --user-data-dir / --profile-directory flags as Chrome.
     """
     try:
         for profile_name in profile_folders:
@@ -218,13 +225,13 @@ def open_edge_profiles(edge_path: str, user_data_dir: str,
                 edge_path,
                 f"--user-data-dir={user_data_dir}",
                 f"--profile-directory={profile_name}",
-                "https://www.example.com"
+                "https://www.example.com",
+                "--ozone-platform=x11",
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL)
             time.sleep(1)
 
-        # Edge window titles look like "Example Domain - Microsoft​ Edge"
         edge_windows = []
         tries = 7
         for _ in range(tries):
@@ -254,7 +261,8 @@ def open_edge_profiles_rewards(edge_path: str, user_data_dir: str,
                 edge_path,
                 f"--user-data-dir={user_data_dir}",
                 f"--profile-directory={profile_name}",
-                "https://www.example.com"
+                "https://www.example.com",
+                "--ozone-platform=x11",
             ],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL)
@@ -262,6 +270,28 @@ def open_edge_profiles_rewards(edge_path: str, user_data_dir: str,
     except Exception as e:
         logging.error(f"Error opening Edge profiles: {e}")
         raise
+
+
+# ── Screenshot helper (spectacle replaces mss for Wayland) ───────────────────
+
+_SCREENSHOT_PATH = os.path.join(tempfile.gettempdir(), "redeemable_accounts_shot.png")
+
+
+def capture_full_screen_gray() -> np.ndarray:
+    """
+    Captures the entire virtual desktop (all outputs stitched together, same
+    idea as mss's monitors[0]) via spectacle and returns it as a grayscale
+    numpy array. Coordinates in the returned image line up with pyautogui's
+    (x, y) click coordinates, since both work in the same global screen space.
+    """
+    subprocess.run(
+        [SPECTACLE, "-b", "-n", "-f", "-o", _SCREENSHOT_PATH],
+        check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+    )
+    img = cv2.imread(_SCREENSHOT_PATH, cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        raise RuntimeError(f"spectacle did not produce a readable screenshot at {_SCREENSHOT_PATH}")
+    return img
 
 
 # ── Button clicker ────────────────────────────────────────────────────────────
@@ -289,21 +319,19 @@ def click_desktop_button(edge_windows: list[dict], image_path: str, max_retries:
                 pag.hotkey('ctrl', 'shift', 'r')
                 time.sleep(1)
 
-                match_found = False
-                with mss.mss() as sct:
-                    for monitor in sct.monitors[1:]:
-                        screenshot = np.array(sct.grab(monitor))
-                        screenshot_gray = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2GRAY)
-                        result = cv2.matchTemplate(screenshot_gray, template_gray, cv2.TM_CCOEFF_NORMED)
-                        _, max_val, _, max_loc = cv2.minMaxLoc(result)
-                        if max_val >= 0.5:
-                            global_x = monitor["left"] + max_loc[0] + w // 2
-                            global_y = monitor["top"] + max_loc[1] + h // 2
-                            pag.click(x=global_x, y=global_y)
-                            match_found = True
-                            break
+                # Full-desktop capture via spectacle. This returns one image
+                # already in the same global coordinate space that pyautogui's
+                # XTest-based click uses (same as mss's monitors[0] would have
+                # been), so no per-monitor offset math is needed.
+                screenshot_gray = capture_full_screen_gray()
+                result = cv2.matchTemplate(screenshot_gray, template_gray, cv2.TM_CCOEFF_NORMED)
+                _, max_val, _, max_loc = cv2.minMaxLoc(result)
 
-                if not match_found:
+                if max_val >= 0.5:
+                    global_x = max_loc[0] + w // 2
+                    global_y = max_loc[1] + h // 2
+                    pag.click(x=global_x, y=global_y)
+                else:
                     logging.warning(
                         f"Attempt {attempt}: Button not found for window {win['id']}. Queuing for retry."
                     )
