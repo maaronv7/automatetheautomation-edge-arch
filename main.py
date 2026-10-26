@@ -442,7 +442,7 @@ if isBatch == "Y":
         time.sleep(sleep_duration)
         #windows_to_close = load_apps_to_close(APP_FILE_PATH)
         # close_apps_by_title(windows_to_close)
-        time.sleep(300)
+        time.sleep(270)
 
 elif isBatch == "N":
     profile_folders, num_of_profiles = get_profile_folders(user_data_dir, target_folder)
